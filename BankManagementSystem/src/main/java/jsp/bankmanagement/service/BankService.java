@@ -31,14 +31,10 @@ public class BankService {
 		    }
 		 
 		if(String.valueOf(bank.getContact()).length()==10 && String.valueOf(bank.getAddress().getPincode()).length()==6) {
-			if(bank.getAddress()!=null) {
 				res.setStatusCode(HttpStatus.CREATED.value());
 				res.setMessage("Bank Record Created");
 				res.setData(bankRepository.save(bank));
 				return res;
-			}
-			else
-				throw new ResourceNotFoundException("Address Must Be Passed To Save Bank Record");
 		}
 		else
 			throw new LengthExceedException("Invalid input: Contact number must be 10 digits and pincode must be 6 digits");
