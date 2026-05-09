@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -29,15 +30,19 @@ public class BankService {
 		 if (bank.getAddress() == null) {
 		        throw new ResourceNotFoundException("Address Must Be Passed To Save Bank Record");
 		    }
-		 
-		if(String.valueOf(bank.getContact()).length()==10 && String.valueOf(bank.getAddress().getPincode()).length()==6) {
-				res.setStatusCode(HttpStatus.CREATED.value());
-				res.setMessage("Bank Record Created");
-				res.setData(bankRepository.save(bank));
-				return res;
-		}
-		else
+		 if(bankRepository.existsByIfscCode(bank.getIfscCode())) {
+			 throw new DataIntegrityViolationException("IFSC Code allready Exists.");
+		 }
+		 if(bankRepository.existsByContact(bank.getContact())) {
+			 throw new DataIntegrityViolationException("Contact Number allready Exists.");
+		 }
+		if(String.valueOf(bank.getContact()).length()!=10 && String.valueOf(bank.getAddress().getPincode()).length()!=6) {
 			throw new LengthExceedException("Invalid input: Contact number must be 10 digits and pincode must be 6 digits");
+		}
+		res.setStatusCode(HttpStatus.CREATED.value());
+		res.setMessage("Bank Record Created");
+		res.setData(bankRepository.save(bank));
+		return res;
 	}
 	
 	//Get All Bank
@@ -73,7 +78,7 @@ public class BankService {
 		ResponseStructure<String> res=new ResponseStructure<>();
 		Optional<Bank> opt=bankRepository.findById(id);
 		if(opt.isPresent()) {
-			if(opt.get().getAccounts()!=null) {
+			if(opt.get().getAccounts()==null || opt.get().getAccounts().isEmpty()) {
 				bankRepository.deleteById(id);
 				res.setStatusCode(HttpStatus.OK.value());
 				res.setMessage("Bank Record Deleted");
@@ -81,7 +86,7 @@ public class BankService {
 				return res;
 			}
 			else
-				throw new ResourceNotFoundException("Account Must be needed to Delete Bank");
+				throw new ResourceNotFoundException("Bank Has Active Accounts so cannot be deleted.");
 		}
 		else
 			throw new ResourceNotFoundException("No Bank Record Found To delete with Id "+id);

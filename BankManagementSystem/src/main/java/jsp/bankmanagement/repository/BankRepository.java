@@ -23,6 +23,12 @@ public interface BankRepository extends JpaRepository<Bank, Integer>{
 
 	//Fetch Bank By contact
 	Optional<Bank> findByContact(Long contact);
+
+	//Check the ifsc code is Exists or not.
+	boolean existsByIfscCode(String ifscCode);
+
+	//Check Contact Exists or not.
+	boolean existsByContact(Long contact);
 	
 	
 

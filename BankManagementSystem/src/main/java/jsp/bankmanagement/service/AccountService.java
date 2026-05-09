@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,10 @@ public class AccountService {
 	public ResponseStructure<Account> createAccount(Account account){
 		ResponseStructure<Account> res=new ResponseStructure<>();
 		Optional<Bank> opt=accountRepository.findByBankId(account.getBank().getBankId());
+		if(accountRepository.existsByAccountNumber(account.getAccountNumber())) {
+			throw new DataIntegrityViolationException("Account Number Allready Exists.");
+		}
+		
 		if(opt.isPresent()) {
 			res.setStatusCode(HttpStatus.CREATED.value());
 			res.setMessage("Account Created");
